@@ -8,7 +8,7 @@ import json
 
 
 def md5(name):
-    name = name.strip()  # 计算企业名称md5值之前去掉企业名称的空格
+    name = name.strip()  # Eliminate the blanks/spaces ahead of the real title
     return hashlib.md5(name).hexdigest()
 
 
@@ -44,7 +44,8 @@ def timestamp(date_str):
 
 
 def hp_type_f(hp_type):
-    # 报告书 报告表 登记表 未知
+    # This function is used to distinguish the type of environmental reports. 
+    # In general we have 3 types, including report file (报告书), report sheet (报告表) and (resgisteration sheet).
     if not hp_type:
         return hp_type
     if '报告书' in hp_type:
@@ -58,6 +59,8 @@ def hp_type_f(hp_type):
 
 
 def js_dw_hp_dw(s):
+    # js_dw is short for the Chinese pinyin of "建设单位", while hp_dw for "环评单位"
+    # So obviously both of them should be a 4-character-long string, or it is definitely wrong
     ss = clean(s)
     if not ss:
         return ss
@@ -68,6 +71,9 @@ def js_dw_hp_dw(s):
 
 
 def re_project_name(pname):
+    # Many sites are likely to post many irrelevant stuff onto the pages, which is annoying to our job.
+    # So we tried to "clean" their language in following ways:
+    # cancel the "《》" and the meaningless Chinese words like "关于 (about/on)" and "环评 (the report of ...)"
     if not pname:
         return pname
     # 第一把书名号去掉，在针对'项目'、‘工程’、‘环境影响’、‘环评’、‘批复’
@@ -101,15 +107,15 @@ def trip_item(item):
 
     p_item = {}.fromkeys(keys, None)
     p_item.update(item)
-    project_name = re_project_name(p_item['project_name'])  # 关于  环境影响 书名号去掉
+    project_name = re_project_name(p_item['project_name'])
     date_time = timestamp(p_item['date_time'])
-    sp_bm = clean(p_item['sp_bm'])  # 审批部门
-    hp_type = hp_type_f(p_item['hp_type'])  # 环评文件类型 报告书 报告表 登记表 未知
-    js_dw = js_dw_hp_dw(p_item['js_dw'])  # 建设单位
-    hp_dw = js_dw_hp_dw(p_item['hp_dw'])  # 环评单位
-    site = clean(p_item['site'])  # 建设地点
-    pf_num = clean(p_item['pf_num'])  # 环评批复文号
-    pf_time = timestamp(p_item['pf_time'])  # 环评批复时间
+    sp_bm = clean(p_item['sp_bm'])  # dministrations(审批部门)
+    hp_type = hp_type_f(p_item['hp_type'])  # types of environemental reports(环评文件类型 报告书 报告表 登记表 未知)
+    js_dw = js_dw_hp_dw(p_item['js_dw'])  # Constructor(建设单位)
+    hp_dw = js_dw_hp_dw(p_item['hp_dw'])  # Evaluator of Environmental Effects(环评单位)
+    site = clean(p_item['site'])  # Construction site(建设地点)
+    pf_num = clean(p_item['pf_num'])  # Code of Response towards environmental evaluation(环评批复文号)
+    pf_time = timestamp(p_item['pf_time'])  # time of evaluation(环评批复时间)
     p_item['project_name'] = project_name
     p_item['date_time'] = date_time
     p_item['sp_bm'] = sp_bm
@@ -120,10 +126,14 @@ def trip_item(item):
     p_item['pf_num'] = pf_num
     p_item['pf_time'] = pf_time
 
+    # As the output of this function the dictionary is also the scraped information of this scrapy
     return p_item
 
 
 def get_urls(item):
+    # We need to download the files attached in each web page.
+    # So we have to collect the urls where the files are located
+    # 'bg_url' is used to collect the address of report file(s), 'gc_url' notice file(s) and 'pf_url' response files.
     data = item['data']
     data = json.loads(data)
     urls = []
@@ -142,7 +152,7 @@ if __name__ == "__main__":
             'sp_bm': ' 绿 网 ', 'hp_type': 'xxx报告书',
             'js_dw': ' jian she 单位', 'hp_dw': 'h品单位',
             'pf_time': '20180720',
-    }
+    } # This should be defined by the coder himself/herself. So just one easy example.
     tt = trip_item(t)
     for k, v in tt.items():
         if v:
