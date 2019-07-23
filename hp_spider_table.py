@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-作者:luo
-日期:2019-2-$day$
-
-网址:  受理/拟审批/审批
-备注:  $web$
-
-"""
+'''
+You may have already noticed that there are lots of pairs of dollar signs.
+Actually I coded within PyCharm, applying the living templates. (Tutorial: http://www.jetbrains.com/help/idea/using-live-templates.html)
+So anyway they don't matter. They are just symbols to remind you that you put something variable into you mostly completed codes.
+Just feel free to use my ideas and remember to replace the dollar signs and what are between them with what you want to code.
+'''
 from datetime import date
 import scrapy
 from scrapy.utils.log import configure_logging
@@ -25,12 +23,13 @@ class HpSpider(scrapy.Spider):
                   'city': None,
                   'source_webname': '$web$',
                   'sp_bm': '$sp_bm$'}
-    # file = "logs/%s%s.log" % (name, date.today().strftime("%Y_%m_%d"))
-    # exceptions = set()
-    #
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     configure_logging(settings={'LOG_FILE': self.file, 'LOG_LEVEL': 'INFO'})
+    
+    file = "logs/%s%s.log" % (name, date.today().strftime("%Y_%m_%d"))
+    exceptions = set()
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        configure_logging(settings={'LOG_FILE': self.file, 'LOG_LEVEL': 'INFO'})
 
     def start_requests(self):
         for page in range(1, self.page + 1):
