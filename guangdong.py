@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-作者:luo
-日期:2019-2-21
-
-网址:  受理/拟审批/审批  http://www.gdep.gov.cn/hpsp/
-备注:  广东省生态环境公众网  根据历史爬虫数据设置抓取时间
-
+http://www.gdep.gov.cn/hpsp/
 """
 from datetime import date
 import scrapy
@@ -15,13 +10,15 @@ import json
 from hpspider.functions import timestamp
 
 
+# This time we moved forward. We categorized the errors, which helped us find the way to improve a certain program used in a site.
 class HpSpider(scrapy.Spider):
     name = 'guangdong'
-    url_sl = 'http://www.gdep.gov.cn/hpsp/jsxmsp/slgg/'  # 受理公告
-    url_nsp = 'http://www.gdep.gov.cn/hpsp/jsxmsp/spqgs/'  # 审查公示
-    url_sp = 'http://www.gdep.gov.cn/hpsp/jsxmsp/sphgg/'  # 审批后公告
+    url_sl = 'http://www.gdep.gov.cn/hpsp/jsxmsp/slgg/'  
+    url_nsp = 'http://www.gdep.gov.cn/hpsp/jsxmsp/spqgs/'  
+    url_sp = 'http://www.gdep.gov.cn/hpsp/jsxmsp/sphgg/'  
     set_time = '2019-1-23'
 
+    # I packed up the often used information, so that we could at least save a little bit endeavor.
     basic_info = {'province': 6,
                   'city': None,
                   'source_webname': '广东省生态环境公众网',
@@ -64,6 +61,7 @@ class HpSpider(scrapy.Spider):
                 test5 = ''.join(table.xpath('string(//tr[1]/td[5])').extract_first(default='').split())
                 is_test = '项目名称' in test2 and '建设单位' in test3 and '建设地' in test4 \
                           and ('环评' in test5 or '环境影响' in test5)
+                # To make sure the keywords above exist in the web page content
                 if is_test:
                     data_rows = table.xpath('//body/table/tr')
                     for i, data_row in enumerate(data_rows):
@@ -87,11 +85,11 @@ class HpSpider(scrapy.Spider):
                                 {"remark": None, "attachments": {"data": attachments, "msg": msg}}, ensure_ascii=False)
                             if timestamp(item['date_time']) > timestamp(self.set_time):
                                 yield item
-                else:
+                else: # changes happened to the table
                     yield problem_item(self.basic_info, response, gs_type='受理', error_info='表格格式变化，无法提取')
-            else:
+            else:  # structural problems
                 yield problem_item(self.basic_info, response, gs_type='受理', error_info='表格结构问题，无法提取')
-        else:
+        else: # formatic error of the web page
             yield problem_item(self.basic_info, response, gs_type='受理', error_info='网页格式不正确，无法提取')
 
     def parse_nsp(self, response):
