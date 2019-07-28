@@ -1,0 +1,1 @@
+Both files are collections of object-oriented functions ("black box"). Mostly they are similar. Only some places are modified.
