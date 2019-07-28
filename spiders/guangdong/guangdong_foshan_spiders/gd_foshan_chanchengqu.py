@@ -9,6 +9,14 @@
 备注/note：禅城区人民政府门户网
 """
 
+"""
+In this version, most parts of the program are fixed. We only need to define the dictionary "basic_info" and the seed url.
+Perhaps you might meet something unexpected. For example, the keyword is listed the keyword collection. But no matter what I believe
+there is a solution. Just take this example. You can evaluate this keyword whether is another frequently used word, or a simply usually
+used word of the web page designer. If it is the fisr case it is okay to include it into the keyword collection in common_extract_info.py.
+Or you just need to modify this program in certain places.
+"""
+
 import scrapy
 import json
 from datetime import date
@@ -29,12 +37,12 @@ class HpSpider(scrapy.Spider):
                   'source_webname': '禅城区人民政府门户网',
                   'sp_bm': '佛山市禅城区生态环境局'}
 
-    # file = "logs/%s%s.log" % (name, date.today().strftime("%Y_%m_%d"))
-    # exceptions = set()
+    file = "logs/%s%s.log" % (name, date.today().strftime("%Y_%m_%d"))
+    exceptions = set()
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     configure_logging(settings={'LOG_FILE': self.file, 'LOG_LEVEL': 'INFO'})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        configure_logging(settings={'LOG_FILE': self.file, 'LOG_LEVEL': 'INFO'})
 
     def start_requests(self):
         yield scrapy.Request(url='http://www.chancheng.gov.cn/chancheng/hjxx03/cclist.shtml', callback=self.parse_url)
