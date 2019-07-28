@@ -5,4 +5,4 @@ Green Data is a non-profit organization that focuses on public supervision towar
   
 So now I will show you what I figured out and hope somebody to help me improve all the stuff.
 
-At this stage, you will see a lot changes in our methodology. But flaws still existed. So soon we abandoned the functions either.
+On this branch, what you could see is the most generalized way to extract the information from internet. To do this, we had to be as much object-oriented as possible.
