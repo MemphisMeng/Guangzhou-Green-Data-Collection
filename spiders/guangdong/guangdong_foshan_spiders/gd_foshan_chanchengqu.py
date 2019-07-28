@@ -15,6 +15,7 @@ Perhaps you might meet something unexpected. For example, the keyword is listed 
 there is a solution. Just take this example. You can evaluate this keyword whether is another frequently used word, or a simply usually
 used word of the web page designer. If it is the fisr case it is okay to include it into the keyword collection in common_extract_info.py.
 Or you just need to modify this program in certain places.
+So I strongly recommend you must take a review after every extraction, especially the first time.
 """
 
 import scrapy
@@ -72,6 +73,9 @@ class HpSpider(scrapy.Spider):
                 'date_time': date_time,
                 'files': files
             }
+           """
+           Actually all the judgment situations as long as you extract what you really need
+           """
             if gs_type == '受理':
                 return scrapy.Request(url=response.url, callback=self.parse_sl, dont_filter=True, meta=meta)
             elif gs_type == '拟审批':
