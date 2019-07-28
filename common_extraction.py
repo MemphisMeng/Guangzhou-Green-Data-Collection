@@ -1,12 +1,9 @@
 # coding: utf-8
 
 """
-作者: 何昕
-日期: 20190429
+A module containing generalized methods for environmental evaluation information extraction
 
 通用的环评数据提取方法模块
-
-备注：
 """
 
 from hpspider.utils import clean_blank, get_files, format_table, query_string, replace_th, split_span
@@ -23,7 +20,7 @@ class Extraction:
         self.files = files
 
     def estimate_content_format(self):
-        """判断内容格式"""
+        """This helps us judge which format it is before we start extracting"""
         content_format = None
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -46,7 +43,6 @@ class Extraction:
         return content_format
 
     def extract(self):
-        """内容提取"""
         format_mapping = {
             'two_col_table': self.extract_format1,
             'multiple_col_table': self.extract_format2,
@@ -66,7 +62,7 @@ class Extraction:
 
 
 class ShouliExtraction(Extraction):
-    """受理"""
+    """This method is used for the reception section web pages."""
 
     def __init__(self, body, response, files=None, project_name=None, site=None, js_dw=None, hp_dw=None):
         super(ShouliExtraction, self).__init__(body, response, files)
@@ -85,9 +81,9 @@ class ShouliExtraction(Extraction):
 
     def extract_format1(self):
         """
-        内容格式1: 二列表格格式、单条信息提取
-        格式示例: http://sthjj.hengyang.gov.cn/gsgg/201904/t20190418_2832372.html
-        :return: str（错误信息） or [data]
+        Format No.1: Every page has only a piece of information, being displayed in a two-column table.
+        Example site: http://sthjj.hengyang.gov.cn/gsgg/201904/t20190418_2832372.html
+        :return: str（error warnings） or [data]
         """
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -124,7 +120,7 @@ class ShouliExtraction(Extraction):
 
         if not project_name:
             return '受理提取失败(1)--未匹配到项目名称'
-        # 附件提取
+        # extract the attachments
         if self.files:
             files = self.files
         else:
@@ -145,9 +141,9 @@ class ShouliExtraction(Extraction):
 
     def extract_format2(self):
         """
-        内容格式2: 多列表格格式、多条信息提取
-        格式示例: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
-        :return: str（错误信息） or [data]
+        Format No.2: One a piece of information in every page, being displyed in a table with more two columns.
+        Example site: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
+        :return: str（error warnings） or [data]
         """
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -159,7 +155,6 @@ class ShouliExtraction(Extraction):
             table = split_span(table)
 
         trs = table.xpath(".//td[2]/..")
-        # 判断首列中是否同时具有项目名称和建设单位，如果同时具有调用extract_format1
         all_td1_text = ''
         for i, tr in enumerate(trs):
             td1_text = tr.xpath('string(./td[1])').extract_first()
@@ -167,8 +162,7 @@ class ShouliExtraction(Extraction):
         if query_string(self.project_name, all_td1_text) and query_string(self.js_dw, all_td1_text):
             self.extract_format1()
 
-        # 其他情况获取表头行索引
-        header_index = None  # 表头索引
+        header_index = None  # indexes of headline keywords
         for i, tr in enumerate(trs):
             tr_text = tr.xpath('string(.)').extract_first()
             text = clean_blank(tr_text)
@@ -178,7 +172,6 @@ class ShouliExtraction(Extraction):
         if header_index is None:
             return '受理提取失败(2)--未匹配到表头'
 
-        # 对应列索引
         project_name_index, site_index, js_dw_index, hp_dw_index = None, None, None, None
         header_text = trs[header_index].xpath(".//td").xpath("string(.)").extract()
         for i, text in enumerate(header_text):
@@ -199,7 +192,6 @@ class ShouliExtraction(Extraction):
         if project_name_index is None:
             return '受理提取失败(2)--未匹配到项目名称'
 
-        # 根据对应列索引来提取
         data = []
         project_name, site, js_dw, hp_dw, msg, attachments = '', '', '', '', None, None
         for i, tr in enumerate(trs[header_index + 1:]):
@@ -233,9 +225,9 @@ class ShouliExtraction(Extraction):
 
     def extract_format3(self):
         '''
-        内容格式3: 文本段落格式、单条或多条信息提取
-        格式示例: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
-        :return: str（错误信息） or [data]
+        Format No.3: All information is shown in an article. Probably there may be a table but anyway we need to deal with the article.
+        Example site: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
+        :return: str（error warnings） or [data]
         '''
         body_text = self.body.xpath('.').extract_first()
         body_text = body_text.replace('<br>', '</p><p>').replace('<b>', '<p>').replace('</b>', '</p>')
@@ -333,7 +325,7 @@ class ShouliExtraction(Extraction):
 
 
 class NishenpiExtraction(Extraction):
-    """拟审批"""
+    """For those cases which will be issued"""
 
     def __init__(self, body, response, files=None, project_name=None, site=None, js_dw=None, hp_dw=None, xm_gk=None,
                  yx_cs=None):
@@ -359,9 +351,9 @@ class NishenpiExtraction(Extraction):
 
     def extract_format1(self):
         """
-        内容格式1: 二列表格格式 单条信息
-        格式示例: http://sthjj.hengyang.gov.cn/gsgg/201904/t20190425_2834279.html
-        :return: str（错误信息） or [data]
+        Format No.1: A two-column table, one piece of information
+        Example site: http://sthjj.hengyang.gov.cn/gsgg/201904/t20190425_2834279.html
+        :return: str（error warnings） or [data]
         """
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -404,7 +396,7 @@ class NishenpiExtraction(Extraction):
         if not project_name:
             return '拟审批提取失败(1)--未匹配到项目名称'
 
-        # 附件提取
+        # extract the attachments
         if self.files:
             files = self.files
         else:
@@ -427,9 +419,9 @@ class NishenpiExtraction(Extraction):
 
     def extract_format2(self):
         """
-        内容格式2: 多列表格格式、多条信息提取
-        格式示例: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
-        :return: str（错误信息） or [data]
+        Format No.2: A table with more than 2 columns,probably more than 2 row as well. So it could cantain more than one piece of information.
+        Example site: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
+        :return: str（error warnings） or [data]
         """
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -441,16 +433,14 @@ class NishenpiExtraction(Extraction):
             table = split_span(table)
 
         trs = table.xpath(".//td[2]/..")
-        # 判断首列中是否同时具有项目名称和建设单位，如果同时具有调用extract_format1
         all_td1_text = ''
         for i, tr in enumerate(trs):
             td1_text = tr.xpath('string(./td[1])').extract_first()
             all_td1_text += td1_text
         if query_string(self.project_name, all_td1_text) and query_string(self.js_dw, all_td1_text):
             self.extract_format1()
-
-        # 获取表头行索引
-        header_index = None  # 表头索引
+            
+        header_index = None  
         for i, tr in enumerate(trs):
             tr_text = tr.xpath('string(.)').extract_first()
             text = clean_blank(tr_text)
@@ -460,7 +450,6 @@ class NishenpiExtraction(Extraction):
         if header_index is None:
             return '拟审批提取失败(2)--未匹配到表头'
 
-        # 对应列索引
         project_name_index, site_index, js_dw_index, hp_dw_index, xm_gk_index, yx_cs_index = None, None, None, None, None, None
         header_text = trs[header_index].xpath(".//td").xpath("string(.)").extract()
         for i, text in enumerate(header_text):
@@ -486,8 +475,7 @@ class NishenpiExtraction(Extraction):
 
         if project_name_index is None:
             return '拟审批提取失败(2)--未匹配到项目名称'
-
-        # 根据对应列索引来提取
+        
         data = []
         project_name, site, js_dw, hp_dw, xm_gk, yx_cs, msg, attachments = '', '', '', '', '', '', None, None
         for i, tr in enumerate(trs[header_index + 1:]):
@@ -504,7 +492,6 @@ class NishenpiExtraction(Extraction):
             if yx_cs_index is not None:
                 yx_cs = tds[yx_cs_index].xpath("string(.)").extract_first()
 
-            # 附件提取
             if self.files:
                 files = self.files
             else:
@@ -529,9 +516,9 @@ class NishenpiExtraction(Extraction):
 
     def extract_format3(self):
         '''
-        内容格式3: 文本段落格式、单条或多条信息提取
-        格式示例: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
-        :return: str（错误信息） or [data]
+        Format No.3: article
+        example site: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
+        :return: str（error warnings） or [data]
         '''
         body_text = self.body.xpath('.').extract_first()
         body_text = body_text.replace('<br>', '</p><p>').replace('<b>', '<p>').replace('</b>', '</p>')
@@ -633,7 +620,7 @@ class NishenpiExtraction(Extraction):
 
 
 class ShenpiExtraction(Extraction):
-    """审批决定"""
+    """For issue decision section"""
 
     def __init__(self, body, response, files=None, project_name=None, js_dw=None, pf_num=None, pf_time=None):
         super(ShenpiExtraction, self).__init__(body, response, files)
@@ -652,9 +639,9 @@ class ShenpiExtraction(Extraction):
 
     def extract_format1(self):
         """
-        内容格式1: 二列表格格式 单条信息
-        格式示例:http://www.hengshan.gov.cn/xxgk/glgk/hjbh/xmhp/201904/t20190426_2835050.html
-        :return: str（错误信息） or [data]
+        Format No.1: two-column table
+        Example:http://www.hengshan.gov.cn/xxgk/glgk/hjbh/xmhp/201904/t20190426_2835050.html
+        :return: str（error warnings） or [data]
         """
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -689,7 +676,7 @@ class ShenpiExtraction(Extraction):
                 continue
         if not project_name:
             return '审批提取失败(1)--未匹配到项目名称'
-        # 附件提取
+        # attachment extraction
         if self.files:
             files = self.files
         else:
@@ -710,9 +697,9 @@ class ShenpiExtraction(Extraction):
 
     def extract_format2(self):
         """
-        内容格式2: 多列表格格式 多条信息
-        格式示例:http://sthjj.hengyang.gov.cn/gsgg/201812/t20181204_2728278.html
-        :return: str（错误信息） or [data]
+        Format No.2: Multi-column table
+        example site:http://sthjj.hengyang.gov.cn/gsgg/201812/t20181204_2728278.html
+        :return: str（error warnings） or [data]
         """
         if self.body.xpath('//th'):
             self.body = replace_th(self.body)
@@ -724,7 +711,6 @@ class ShenpiExtraction(Extraction):
             table = split_span(table)
 
         trs = table.xpath(".//td[2]/..")
-        # 判断首列中是否同时具有项目名称和批复文号，如果同时具有调用extract_format1
         all_td1_text = ''
         for i, tr in enumerate(trs):
             td1_text = tr.xpath('string(./td[1])').extract_first()
@@ -732,8 +718,8 @@ class ShenpiExtraction(Extraction):
         if query_string(self.project_name, all_td1_text) and query_string(self.pf_num, all_td1_text):
             self.extract_format1()
 
-        # 获取表头行索引
-        header_index = None  # 表头索引
+        # acquire the indexes of headline keywords
+        header_index = None
         for i, tr in enumerate(trs):
             tr_text = tr.xpath('string(.)').extract_first()
             text = clean_blank(tr_text)
@@ -743,7 +729,7 @@ class ShenpiExtraction(Extraction):
         if header_index is None:
             return '审批提取失败(2)--未匹配到表头'
 
-        # 对应列索引
+        # respective column indexes
         project_name_index, js_dw_index, pf_num_index, pf_time_index, = None, None, None, None
         header_text = trs[header_index].xpath(".//td").xpath("string(.)").extract()
         for i, text in enumerate(header_text):
@@ -777,7 +763,7 @@ class ShenpiExtraction(Extraction):
             if js_dw_index is not None:
                 js_dw = tds[js_dw_index].xpath("string(.)").extract_first()
 
-            # 附件提取
+            # extract attachments
             if self.files:
                 files = self.files
             else:
@@ -800,9 +786,9 @@ class ShenpiExtraction(Extraction):
 
     def extract_format3(self):
         '''
-        内容格式3: 文本段落格式、单条或多条信息提取
-        格式示例: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
-        :return: str（错误信息） or [data]
+        Format No.3: article
+        Example site: http://www.hyx.gov.cn/zwgk/bmxxgkml/xhbj/tzgg_82867/201903/t20190327_2819615.html
+        :return: str（error warnings） or [data]
         '''
         body_text = self.body.xpath('.').extract_first()
         body_text = body_text.replace('<br>', '</p><p>').replace('<b>', '<p>').replace('</b>', '</p>')
@@ -912,9 +898,10 @@ class ShenpiExtraction(Extraction):
 
 def estimate_gs_type(title, body):
     """
-    无法根据标题判断公示类型时, 根据公示内容判断公示类型
-    :param body: 正文 Selector类
-    :param title: 爬取页码的title
+    When we couldn't distinguish what kind of notice the article is according to the title, we identify based on the article content.
+    Like what we did before we still judged them according to the appearance of certain groups of keywords
+    :param body: class Selector, containing all the text
+    :param title: class Selector, containing the text of the title
     :return: None or '受理','拟审批','审批'
     """
 
