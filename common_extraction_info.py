@@ -1,3 +1,8 @@
+# This file contains all the keywords that we had already encountered or came out of mind. 
+# We tried to collect all the keywords together so that we could raise our efficiency by saving the time on checking the keywords on pages.
+# So the file dynamic, since we frequently came to a newly often used word.
+
+
 PROJECT_NAME = ['建设项目名称', '项目名称', '事项名称', '批复名称', '文件名称']
 
 SITE = ['建设地点', '建设地址']
