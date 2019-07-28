@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 
-<<<<<<< HEAD
 # Define here the models for your scraped items
 #
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/items.html
 
 =======
->>>>>>> c840829fc775ae49ee98f82ca29744c9ad166d50
 import scrapy
 
 
 class HpspiderItem(scrapy.Item):
-<<<<<<< HEAD
     # define the fields for your item here like:
     # name = scrapy.Field()
     project_name = scrapy.Field()  # 项目名称
@@ -91,7 +88,3 @@ class HpspiderItem(scrapy.Item):
     p_province = scrapy.Field()      # 省
     p_city = scrapy.Field()          # 市
     p_approval = scrapy.Field()      # 审批部门
-
-
-
->>>>>>> c840829fc775ae49ee98f82ca29744c9ad166d50
