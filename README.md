@@ -5,4 +5,4 @@ Green Data is a non-profit organization that focuses on public supervision towar
   
 So now I will show you what I figured out and hope somebody to help me improve all the stuff.
 
-On this branch, what you could see is the most generalized way to extract the information from internet. To do this, we had to be as much object-oriented as possible.
+On this branch, what you could see is the most generalized way to extract the information from internet. To do this, we had to be as much object-oriented as possible enabling the user to just fill in the blanks in the main program without knowing how it works throughout the black box. So we have harbored a lot of endeavor in building this black box.
