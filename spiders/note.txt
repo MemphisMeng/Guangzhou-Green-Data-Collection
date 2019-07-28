@@ -1,1 +1,4 @@
-I was in charge of the websites of Guangdong & Anhui Province. And this folder included all I did during the internship. Probably there are some file still using the former methodology.
+I was in charge of the websites of Guangdong & Anhui Province. 
+And this folder included all I did during the internship. 
+Probably there are some file still using the former methodology.
+Make sure you read thoroughly the guangdong/guangdong_foshan_spiders/gd_foshan_chanchengqu.py, I believe it will provide you with valuable knowledge.
