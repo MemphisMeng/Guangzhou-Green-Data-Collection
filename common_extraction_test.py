@@ -1,12 +1,8 @@
 # coding: utf-8
 
 """
-作者: 何昕
-日期: 20190429
-
+A module of a collection of generalized functions
 通用的环评数据提取方法模块
-
-备注：
 """
 
 from hpspider.utils import clean_blank, get_files, format_table, query_string
